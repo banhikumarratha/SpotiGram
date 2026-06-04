@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: spotigram-config
-data:
-  ENVIRONMENT: "production"
-  KAFKA_BROKERS: "kafka-service:9092"
-  REDIS_HOST: "redis-service"

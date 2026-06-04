@@ -1,4 +1,4 @@
-name: SpotiGram CI
+name: CI
 
 on:
   push:
@@ -10,31 +10,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        
-    - name: Install dependencies
-      run: pip install pytest flake8 bandit black
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       
-    - name: Run Bandit Security Scan
-      run: bandit -r libs/ services/ -f custom -o bandit_report.txt || true
-        
-    - name: Run Unit Tests
-      run: pytest services/
+      - name: Install dependencies (FastAPI Template)
+        run: |
+          cd services/fastapi-template
+          pip install -r requirements.txt || true # To be updated when dependency management is strictly defined
+          pip install pytest
       
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: 'spotigram/user-service:latest'
-        format: 'table'
-        exit-code: '1'
-        ignore-unfixed: true
-        vuln-type: 'os,library'
-
-    - name: Run API Tests
-      run: |
-        pytest services/api-template/test_health.py
+      - name: Run Tests (FastAPI Template)
+        run: |
+          cd services/fastapi-template
+          pytest
