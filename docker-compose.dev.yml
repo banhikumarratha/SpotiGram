@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  social-service:
+    build:
+      context: .
+      dockerfile: services/social-service/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  music-service:
+    build:
+      context: .
+      dockerfile: services/music-service/Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - ENVIRONMENT=development
+    depends_on:
+      - redis
+
+  ai-assistant-service:
+    build:
+      context: .
+      dockerfile: services/ai-assistant-service/Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - ENVIRONMENT=development
+      - OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      - chromadb
+
+  emotion-service:
+    build:
+      context: .
+      dockerfile: services/emotion-service/Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      - ENVIRONMENT=development
+
+  embedding-service:
+    build:
+      context: .
+      dockerfile: services/embedding-service/Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      - ENVIRONMENT=development
+
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: services/recommendation-service/Dockerfile
+    ports:
+      - "8007:8007"
+    environment:
+      - ENVIRONMENT=development
+      - CHROMA_HOST=chromadb
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: spotigram
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: spotigram_db
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  chromadb:
+    image: chromadb/chroma:0.4.15
+    ports:
+      - "8004:8000"
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - "9090:9090"
+    
+  grafana:
+    image: grafana/grafana:10.0.3
+    ports:
+      - "3000:3000"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.47
+    ports:
+      - "16686:16686"
+      - "4317:4317" # OTLP gRPC

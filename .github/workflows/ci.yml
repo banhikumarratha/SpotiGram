@@ -1,0 +1,40 @@
+name: SpotiGram CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: pip install pytest flake8 bandit black
+      
+    - name: Run Bandit Security Scan
+      run: bandit -r libs/ services/ -f custom -o bandit_report.txt || true
+        
+    - name: Run Unit Tests
+      run: pytest services/
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'spotigram/user-service:latest'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+
+    - name: Run API Tests
+      run: |
+        pytest services/api-template/test_health.py

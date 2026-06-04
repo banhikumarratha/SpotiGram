@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  api-template:
+    build:
+      context: ./services/api-template
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ui-template:
+    build:
+      context: ./services/ui-template
+    ports:
+      - "${UI_PORT:-8501}:8501"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

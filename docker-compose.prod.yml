@@ -1,0 +1,51 @@
+version: '3.8'
+
+# Production override file
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  user-service:
+    restart: always
+    environment:
+      - ENVIRONMENT=production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  social-service:
+    restart: always
+    environment:
+      - ENVIRONMENT=production
+    logging:
+      driver: "json-file"
+
+  music-service:
+    restart: always
+    environment:
+      - ENVIRONMENT=production
+
+  ai-assistant-service:
+    restart: always
+    environment:
+      - ENVIRONMENT=production
+
+  # In production, managed services (RDS, ElastiCache, MSK) should be used.
+  # If running self-hosted, map volume mounts for persistent data.
+  postgres:
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    volumes:
+      - redisdata:/data
+
+  kafka:
+    volumes:
+      - kafkadata:/var/lib/kafka/data
+
+volumes:
+  pgdata:
+  redisdata:
+  kafkadata:
