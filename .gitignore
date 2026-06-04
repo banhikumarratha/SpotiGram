@@ -167,3 +167,9 @@ data/
 .gemini/
 .agent/
 rules/
+
+# Streamlit
+.streamlit/
+
+# Additional Local DBs/Data
+chroma_db/

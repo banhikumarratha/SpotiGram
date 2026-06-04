@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # -----------------------------------
+  # Application Services
+  # -----------------------------------
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - redis
+      - kafka
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/userdb
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - postgres
+      - kafka
+
+  music-service:
+    build:
+      context: .
+      dockerfile: services/music-service/Dockerfile
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/musicdb
+    depends_on:
+      - postgres
+      - kafka
+
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: services/recommendation-service/Dockerfile
+    environment:
+      - ENVIRONMENT=production
+      - CHROMA_DB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+      - kafka
+
+  ai-assistant-service:
+    build:
+      context: .
+      dockerfile: services/ai-assistant-service/Dockerfile
+    environment:
+      - ENVIRONMENT=production
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      - ollama
+      - redis
+      - kafka
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics-service/Dockerfile
+    environment:
+      - ENVIRONMENT=production
+    depends_on:
+      - kafka
+
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: apps/streamlit-ui/Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      - ENVIRONMENT=production
+    depends_on:
+      - api-gateway
+
+  # -----------------------------------
+  # Infrastructure Services
+  # -----------------------------------
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_MULTIPLE_DATABASES=userdb,musicdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+
+  kafka:
+    image: bitnami/kafka:3.5
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+    volumes:
+      - kafkadata:/bitnami/kafka
+
+  chromadb:
+    image: chromadb/chroma:latest
+    volumes:
+      - chromadata:/chroma/chroma
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollamadata:/root/.ollama
+
+  # Observability
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+
+  prometheus:
+    image: prom/prometheus:latest
+
+volumes:
+  pgdata:
+  redisdata:
+  kafkadata:
+  chromadata:
+  ollamadata:

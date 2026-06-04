@@ -1,0 +1,10 @@
+fastapi==0.103.1
+uvicorn==0.23.2
+prometheus-client==0.17.1
+SQLAlchemy==2.0.35
+alembic==1.14.0
+asyncpg==0.30.0
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+PyJWT==2.8.0
+aiokafka==0.8.1

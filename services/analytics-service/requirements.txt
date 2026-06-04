@@ -1,0 +1,9 @@
+fastapi==0.103.1
+uvicorn==0.23.2
+prometheus-client==0.17.1
+httpx==0.25.0
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
+sqlalchemy[asyncio]>=2.0.35
+asyncpg>=0.30.0
+aiokafka>=0.12.0

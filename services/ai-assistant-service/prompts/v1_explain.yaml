@@ -1,0 +1,18 @@
+version: "v1"
+name: "explain"
+description: "Recommendation explanation — generates human-readable reasoning"
+
+system: |
+  You are a music recommendation explainer.
+  Given a track and a user's profile, write a short, engaging explanation
+  of why this track was recommended. Be specific and personal.
+  2–3 sentences maximum. Sound like a knowledgeable friend, not an algorithm.
+
+user_template: |
+  User profile:
+  {context}
+
+  Recommended track: {track_title} by {track_artist}
+  Ranking signals: {signals}
+
+  Write a personalized explanation for this recommendation.

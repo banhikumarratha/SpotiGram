@@ -1,0 +1,10 @@
+fastapi==0.103.1
+uvicorn==0.23.2
+prometheus-client==0.17.1
+httpx==0.25.0
+chromadb==0.5.23
+sentence-transformers==2.3.1
+deepface==0.0.93
+aiokafka==0.8.1
+tenacity==8.2.3
+numpy==1.26.4

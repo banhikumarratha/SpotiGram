@@ -1,0 +1,55 @@
+/* Spotigram Dark Theme Customizations */
+body {
+    background-color: #121212;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: #000000;
+}
+
+/* Primary buttons */
+.stButton>button {
+    background-color: #1DB954;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.stButton>button:hover {
+    background-color: #1ed760;
+    transform: scale(1.02);
+}
+
+/* Cards */
+.stCard {
+    background-color: #181818;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: background-color 0.3s;
+}
+
+.stCard:hover {
+    background-color: #282828;
+}
+
+/* Header Text */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff;
+}
+
+/* Links */
+a {
+    color: #1DB954;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
