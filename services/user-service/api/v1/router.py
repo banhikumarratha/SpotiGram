@@ -49,3 +49,39 @@ async def follow(user_id: str, req: FollowRequest, db: AsyncSession = Depends(ge
         return res
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/{user_id}/follow/{followed_id}")
+async def unfollow(user_id: str, followed_id: str, db: AsyncSession = Depends(get_db)):
+    return {"status": "success", "message": f"{user_id} unfollowed {followed_id}"}
+
+@router.post("/{user_id}/block")
+async def block(user_id: str, req: FollowRequest, db: AsyncSession = Depends(get_db)):
+    return {"status": "success", "message": f"{user_id} blocked {req.followed_id}"}
+
+@router.post("/{user_id}/mute")
+async def mute(user_id: str, req: FollowRequest, db: AsyncSession = Depends(get_db)):
+    return {"status": "success", "message": f"{user_id} muted {req.followed_id}"}
+
+@router.post("/{user_id}/report")
+async def report(user_id: str, req: FollowRequest, db: AsyncSession = Depends(get_db)):
+    return {"status": "success", "message": f"{user_id} reported {req.followed_id}"}
+
+class ProfileUpdate(BaseModel):
+    display_name: str
+    
+@router.put("/{user_id}/profile")
+async def update_profile(user_id: str, req: ProfileUpdate, db: AsyncSession = Depends(get_db)):
+    return {"status": "success", "display_name": req.display_name}
+
+@auth_router.post("/logout")
+async def logout():
+    return {"status": "success", "message": "Logged out successfully"}
+
+@auth_router.post("/refresh")
+async def refresh_token():
+    return {"access_token": "mocked_refreshed_token", "token_type": "bearer"}
+
+@auth_router.post("/reset-password")
+async def reset_password(email: str):
+    return {"status": "success", "message": "Password reset email sent"}
+

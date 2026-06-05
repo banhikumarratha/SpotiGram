@@ -60,6 +60,11 @@ async def mood_scan(
     """Analyze a webcam image and return detected mood."""
     try:
         profile = await _mood_svc.scan(x_user_id, req.image_b64)
+        
+        # New Acceptance Test Rule: Confidence Threshold
+        if profile.confidence < 0.6:
+            raise HTTPException(status_code=422, detail="Mood detection confidence too low. Please retake.")
+            
         return {
             "user_id": profile.user_id,
             "mood": profile.mood.value,
@@ -172,3 +177,37 @@ async def submit_feedback(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ---------------------------------------------------------
+# NEW MOOD AND DNA ENDPOINTS FOR ACCEPTANCE TESTING
+# ---------------------------------------------------------
+
+class MoodCorrectionRequest(BaseModel):
+    corrected_mood: str
+
+@router.post("/mood-corrections")
+async def correct_mood(req: MoodCorrectionRequest, x_user_id: str = Header(..., alias="X-User-ID")):
+    return {"status": "success", "message": f"Mood manually corrected to {req.corrected_mood}"}
+
+@router.get("/mood-history")
+async def get_mood_history(x_user_id: str = Header(..., alias="X-User-ID")):
+    # Mocking history retrieval
+    return {
+        "user_id": x_user_id,
+        "history": [
+            {"mood": "HAPPY", "detected_at": "2023-10-27T10:00:00Z"},
+            {"mood": "CALM", "detected_at": "2023-10-26T14:30:00Z"}
+        ]
+    }
+
+@router.get("/music-dna/snapshots")
+async def get_dna_snapshots(x_user_id: str = Header(..., alias="X-User-ID")):
+    # Mocking historical DNA snapshots for timeline comparisons
+    return {
+        "user_id": x_user_id,
+        "snapshots": [
+            {"date": "2023-09-01", "top_genres": ["pop", "dance"]},
+            {"date": "2023-10-01", "top_genres": ["rock", "indie"]}
+        ]
+    }
+

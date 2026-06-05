@@ -173,3 +173,16 @@ rules/
 
 # Additional Local DBs/Data
 chroma_db/
+
+# Ruff Linter
+.ruff_cache/
+ruff_cache/
+
+# OS Generated Files
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+

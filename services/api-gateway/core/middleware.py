@@ -3,8 +3,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 import jwt
+import os
 
-JWT_SECRET = "spotigram-dev-secret"
+JWT_SECRET = os.getenv("JWT_SECRET", "spotigram-dev-secret")
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
