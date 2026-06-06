@@ -16,7 +16,7 @@ async def seed_data():
         demo_user = {
             "email": "demo@spotigram.ai",
             "password": "demopassword",
-            "name": "Demo User"
+            "display_name": "Demo User"
         }
         logger.info("Registering demo user...")
         # Ignore if it exists
@@ -24,8 +24,8 @@ async def seed_data():
         
         # 2. Login
         logger.info("Logging in...")
-        res = await client.post("/api/v1/auth/login", data={
-            "username": demo_user["email"],
+        res = await client.post("/api/v1/auth/login", json={
+            "email": demo_user["email"],
             "password": demo_user["password"]
         })
         
@@ -40,12 +40,12 @@ async def seed_data():
 
         # 3. Trigger Mood Scans (Updates Mood History -> Recommendation embeddings)
         logger.info("Sending mood logs...")
-        await client.post("/api/v1/mood/analyze/text", json={"text": "I am feeling very happy and energetic today!"})
-        await client.post("/api/v1/mood/analyze/text", json={"text": "Just want to relax and chill."})
+        await client.post("/api/v1/recommendations/mood-scan/text", json={"text": "I am feeling very happy and energetic today!"})
+        await client.post("/api/v1/recommendations/mood-scan/text", json={"text": "Just want to relax and chill."})
 
         # 4. Trigger AI DJ Conversation (Updates DJ History)
         logger.info("Chatting with AI DJ...")
-        await client.post("/api/v1/ai/dj/chat", json={
+        await client.post("/api/v1/ai/dj", json={
             "session_id": "demo_session_1",
             "message": "Can you give me something upbeat for a workout?",
             "context": {}
@@ -55,7 +55,7 @@ async def seed_data():
         # Note: Depending on the API design, this might be a direct event or an API endpoint.
         # Let's hit the search to populate some caches.
         logger.info("Running searches...")
-        await client.get("/api/v1/spotify/search?q=Workout")
+        await client.get("/api/v1/music/search?q=Workout")
         
         logger.info("Seed data generated successfully!")
 

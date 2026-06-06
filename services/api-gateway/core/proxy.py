@@ -6,6 +6,7 @@ import os
 
 SERVICE_MAP = {
     "/api/v1/users": os.getenv("USER_SERVICE_URL", "http://user-service:8000"),
+    "/api/v1/auth": os.getenv("USER_SERVICE_URL", "http://user-service:8000"),
     "/api/v1/music": os.getenv("MUSIC_SERVICE_URL", "http://music-service:8000"),
     "/api/v1/recommendations": os.getenv("RECOMMENDATION_SERVICE_URL", "http://recommendation-service:8000"),
     "/api/v1/ai": os.getenv("AI_SERVICE_URL", "http://ai-assistant-service:8000"),

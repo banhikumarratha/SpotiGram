@@ -77,3 +77,19 @@ async def lastfm_fallback(track_id: str):
     # Simulates Last.fm scrobble/metadata fallback
     return {"track_id": track_id, "source": "Last.fm", "listeners": 15000}
 
+@router.get("/spotify/player/devices")
+async def get_devices():
+    return {"devices": [{"id": "mock_device_1", "is_active": True, "name": "Spotigram Web Player"}]}
+
+@router.put("/spotify/player/play")
+async def play_track():
+    return {"status": "success"}
+
+@router.put("/spotify/player/pause")
+async def pause_track():
+    return {"status": "success"}
+
+@router.post("/spotify/player/next")
+async def next_track():
+    return {"status": "success"}
+

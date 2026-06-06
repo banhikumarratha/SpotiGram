@@ -7,7 +7,7 @@ class MoodAPI(APIClient):
 
     def analyze_audio(self, audio_bytes: bytes, filename: str):
         files = {"audio_file": (filename, audio_bytes, "audio/mpeg")}
-        return self.post("/api/v1/mood/analyze/audio", files=files)
+        return self.post("/api/v1/recommendations/mood-scan/audio", files=files)
 
     def analyze_text(self, text: str):
-        return self.post("/api/v1/mood/analyze/text", json={"text": text})
+        return self.post("/api/v1/recommendations/mood-scan/text", json={"text": text})

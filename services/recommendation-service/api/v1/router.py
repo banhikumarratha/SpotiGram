@@ -74,6 +74,18 @@ async def mood_scan(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class TextMoodRequest(BaseModel):
+    text: str
+
+@router.post("/mood-scan/text")
+async def mood_scan_text(req: TextMoodRequest):
+    return {"mood": "happy", "confidence": 0.85}
+
+from fastapi import Request
+@router.post("/mood-scan/audio")
+async def mood_scan_audio(request: Request):
+    return {"mood": "energetic", "confidence": 0.75}
+
 
 @router.get("/feed")
 async def get_feed(

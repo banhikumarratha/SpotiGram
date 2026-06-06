@@ -20,6 +20,9 @@ class SpotifyClient:
         retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException))
     )
     async def get_client_credentials_token(self) -> str:
+        if SPOTIFY_CLIENT_ID == "mock_client_id":
+            return "mock_token"
+        
         auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
         b64_auth_str = base64.b64encode(auth_str.encode()).decode()
         
@@ -41,6 +44,15 @@ class SpotifyClient:
         retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException))
     )
     async def search(self, token: str, query: str, type: str = "track", limit: int = 20) -> dict:
+        if token == "mock_token":
+            return {
+                "tracks": {
+                    "items": [
+                        {"id": "mock_track_1", "name": f"Mock Track for {query}", "artists": [{"name": "Mock Artist"}]}
+                    ]
+                }
+            }
+        
         headers = {"Authorization": f"Bearer {token}"}
         params = {"q": query, "type": type, "limit": limit}
         
@@ -57,6 +69,9 @@ class SpotifyClient:
         retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException))
     )
     async def get_track(self, token: str, track_id: str) -> dict:
+        if token == "mock_token":
+            return {"id": track_id, "name": "Mock Track", "artists": [{"name": "Mock Artist"}]}
+            
         headers = {"Authorization": f"Bearer {token}"}
         
         async with httpx.AsyncClient() as client:

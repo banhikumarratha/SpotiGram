@@ -11,10 +11,11 @@ class AIAPI(APIClient):
             "message": message,
             "context": context or {}
         }
-        return self.post("/api/v1/ai/dj/chat", json=payload)
+        return self.post("/api/v1/ai/dj", json=payload)
 
     def get_recommendations(self, mood: str, preferences: dict = None):
-        return self.post("/api/v1/ai/recommendations", json={
+        return self.post("/api/v1/ai/playlist", json={
+            "theme": mood,
             "mood": mood,
-            "preferences": preferences or {}
+            "context": {"preferences": preferences or {}}
         })
