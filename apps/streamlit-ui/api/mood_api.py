@@ -11,3 +11,17 @@ class MoodAPI(APIClient):
 
     def analyze_text(self, text: str):
         return self.post("/api/v1/recommendations/mood-scan/text", json={"text": text})
+
+    def analyze_image(self, image_bytes: bytes, filename: str):
+        headers = self._get_headers()
+        headers.pop("Content-Type", None)
+        headers["Content-Type"] = "application/octet-stream"
+        import httpx
+        with httpx.Client(base_url=self.base_url, headers=headers, timeout=120.0) as client:
+            return client.post("/api/v1/recommendations/mood-scan/image", content=image_bytes)
+
+    def get_feed(self, mood: str = None, limit: int = 20):
+        params = {"limit": limit}
+        if mood:
+            params["mood"] = mood.lower()
+        return self.get("/api/v1/recommendations/feed", params=params)

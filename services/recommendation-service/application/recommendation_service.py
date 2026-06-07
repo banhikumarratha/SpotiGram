@@ -87,66 +87,69 @@ class RecommendationService:
         is_cold = dna is None or dna.is_cold_start
 
         if is_cold:
-            return self._cold_start_feed(user_id, mood, limit)
-
-        # Step 1: Vector search using user DNA
-        similar_tracks = await self._vector_store.query_similar_tracks(
-            dna.embedding, top_k=limit * 2
-        )
-
-        # Step 2: Find social signal from similar users
-        similar_users = await self._vector_store.query_similar_users(
-            dna.embedding, top_k=5
-        )
-        social_track_ids = {u.user_id for u in similar_users}  # simplified social signal
-
-        # Step 3: Mood energy
-        mood_energy = MOOD_ENERGY.get(mood, 0.5) if mood else 0.5
-        tod_energy = _time_of_day_energy()
-
-        # Step 4: Score and rank
-        ranked: List[Recommendation] = []
-        for track in similar_tracks:
-            dna_score = float(track.get("similarity", 0))
-            mood_score = 1.0 - abs(mood_energy - dna_score)
-            social_score = 0.8 if track["track_id"] in social_track_ids else 0.2
-            tod_score = 1.0 - abs(tod_energy - dna_score)
-
-            final_score = (
-                DNA_W * dna_score
-                + MOOD_W * mood_score
-                + SOCIAL_W * social_score
-                + TOD_W * tod_score
+            feed = self._cold_start_feed(user_id, mood, limit)
+        else:
+            # Step 1: Vector search using user DNA
+            similar_tracks = await self._vector_store.query_similar_tracks(
+                dna.embedding, top_k=limit * 2
             )
 
-            signals = {
-                "dna": round(dna_score, 3),
-                "mood": round(mood_score, 3),
-                "social": round(social_score, 3),
-                "time_of_day": round(tod_score, 3),
-            }
+            if not similar_tracks:
+                feed = self._cold_start_feed(user_id, mood, limit)
+            else:
+                # Step 2: Find social signal from similar users
+                similar_users = await self._vector_store.query_similar_users(
+                    dna.embedding, top_k=5
+                )
+                social_track_ids = {u.user_id for u in similar_users}  # simplified social signal
 
-            explanation = _build_explanation(
-                track, signals, mood, track["track_id"] in social_track_ids
-            )
+                # Step 3: Mood energy
+                mood_energy = MOOD_ENERGY.get(mood, 0.5) if mood else 0.5
+                tod_energy = _time_of_day_energy()
 
-            ranked.append(Recommendation(
-                track_id=track["track_id"],
-                title=track.get("title", ""),
-                artist=track.get("artist", ""),
-                score=round(final_score, 4),
-                explanation=explanation,
-                signals=signals,
-            ))
+                # Step 4: Score and rank
+                ranked: List[Recommendation] = []
+                for track in similar_tracks:
+                    dna_score = float(track.get("similarity", 0))
+                    mood_score = 1.0 - abs(mood_energy - dna_score)
+                    social_score = 0.8 if track["track_id"] in social_track_ids else 0.2
+                    tod_score = 1.0 - abs(tod_energy - dna_score)
 
-        ranked.sort(key=lambda r: r.score, reverse=True)
+                    final_score = (
+                        DNA_W * dna_score
+                        + MOOD_W * mood_score
+                        + SOCIAL_W * social_score
+                        + TOD_W * tod_score
+                    )
 
-        feed = RecommendationFeed(
-            user_id=user_id,
-            recommendations=ranked[:limit],
-            mood=mood,
-            is_cold_start=False,
-        )
+                    signals = {
+                        "dna": round(dna_score, 3),
+                        "mood": round(mood_score, 3),
+                        "social": round(social_score, 3),
+                        "time_of_day": round(tod_score, 3),
+                    }
+
+                    explanation = _build_explanation(
+                        track, signals, mood, track["track_id"] in social_track_ids
+                    )
+
+                    ranked.append(Recommendation(
+                        track_id=track["track_id"],
+                        title=track.get("title", ""),
+                        artist=track.get("artist", ""),
+                        score=round(final_score, 4),
+                        explanation=explanation,
+                        signals=signals,
+                    ))
+
+                ranked.sort(key=lambda r: r.score, reverse=True)
+
+                feed = RecommendationFeed(
+                    user_id=user_id,
+                    recommendations=ranked[:limit],
+                    mood=mood,
+                    is_cold_start=False,
+                )
 
         if self._publisher:
             await self._publisher.publish({

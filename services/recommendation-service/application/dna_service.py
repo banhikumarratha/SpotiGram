@@ -72,6 +72,21 @@ class DNAService:
             norm = np.linalg.norm(new_vec)
             dna.embedding = (new_vec / norm if norm > 0 else new_vec).tolist()
 
+            # Upsert track to vector store so it can be recommended later
+            try:
+                from domain.models import TrackEmbedding
+                track_emb = TrackEmbedding(
+                    track_id=event.track_id,
+                    embedding=track_vec.tolist(),
+                    title=event.track_title,
+                    artist=event.track_artist,
+                    genres=event.track_genres or [],
+                )
+                await self._vector_store.upsert_track(track_emb)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning("Failed to upsert track to vector store: %s", e)
+
         # Update genre / artist affinity lists
         if event.track_genres and weight > 0:
             for g in event.track_genres:

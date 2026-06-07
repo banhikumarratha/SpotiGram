@@ -14,3 +14,6 @@ class AuthAPI(APIClient):
             "password": password,
             "display_name": name
         })
+
+    def get_profile(self, user_id: str):
+        return self.get(f"/api/v1/users/{user_id}/profile")

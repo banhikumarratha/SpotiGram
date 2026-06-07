@@ -69,7 +69,10 @@ services:
       dockerfile: services/analytics-service/Dockerfile
     environment:
       - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://user:pass@postgres:5432/analyticsdb
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
+      - postgres
       - kafka
 
   streamlit-ui:
@@ -91,9 +94,10 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
-      - POSTGRES_MULTIPLE_DATABASES=userdb,musicdb
+      - POSTGRES_MULTIPLE_DATABASES=userdb,musicdb,analyticsdb
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
 
   redis:
     image: redis:7-alpine

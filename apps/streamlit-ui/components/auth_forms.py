@@ -24,8 +24,11 @@ def render_login_form():
                         decoded = jwt.decode(data["access_token"], options={"verify_signature": False})
                         st.session_state["user_id"] = decoded.get("sub")
                         st.session_state["user_email"] = email
-                    except Exception:
-                        pass
+                        print(f"DEBUG auth_forms.py: Logged in and set user_id to {st.session_state['user_id']} and user_email to {st.session_state['user_email']}")
+                    except Exception as e:
+                        print(f"DEBUG auth_forms.py: Error decoding token: {e}", flush=True)
+                        import traceback
+                        traceback.print_exc()
                         
                     st.success("Successfully logged in!")
                     st.rerun()

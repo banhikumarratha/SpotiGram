@@ -1,7 +1,7 @@
 import streamlit as st
 from components.navigation import render_sidebar
-from components.track_list import render_track_list, render_playlist_card
-from api.spotify_api import SpotifyAPI
+from components.track_list import render_track_list
+from api.music_api import MusicAPI
 from utils.state import is_authenticated
 
 st.set_page_config(page_title="Discover - Spotigram", page_icon="🔍")
@@ -16,7 +16,7 @@ st.title("Discover")
 search_query = st.text_input("Search for tracks or artists...", placeholder="e.g. The Beatles")
 
 if search_query:
-    api = SpotifyAPI()
+    api = MusicAPI()
     try:
         with st.spinner("Searching..."):
             res = api.search(search_query)
@@ -32,4 +32,6 @@ if search_query:
             else:
                 st.error(f"Search failed: {res.status_code} - {res.text}")
     except Exception as e:
-        st.error(f"Failed to connect to Spotify Service: {e}")
+        st.error(f"Failed to connect to Music Service: {e}")
+
+# Trigger reload of components/track_list.py

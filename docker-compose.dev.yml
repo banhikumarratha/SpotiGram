@@ -44,6 +44,8 @@ services:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql+asyncpg://user:pass@postgres:5432/musicdb
       - REDIS_URL=redis://redis:6379
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+
     volumes:
       - ./services/music-service:/app
       - ./packages:/packages
@@ -86,10 +88,13 @@ services:
       dockerfile: services/analytics-service/Dockerfile
     environment:
       - ENVIRONMENT=development
+      - DATABASE_URL=postgresql+asyncpg://user:pass@postgres:5432/analyticsdb
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
       - ./services/analytics-service:/app
       - ./packages:/packages
     depends_on:
+      - postgres
       - kafka
 
   streamlit-ui:
@@ -119,11 +124,12 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
-      - POSTGRES_MULTIPLE_DATABASES=userdb,musicdb
+      - POSTGRES_MULTIPLE_DATABASES=userdb,musicdb,analyticsdb
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
 
   redis:
     image: redis:7-alpine

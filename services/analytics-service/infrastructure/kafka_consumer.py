@@ -10,7 +10,7 @@ class KafkaEventConsumer(EventConsumerPort):
     def __init__(self, handler, bootstrap_servers: str = None):
         self.handler = handler
         self.bootstrap_servers = bootstrap_servers or os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-        self.topics = ["music.interactions.v1", "mood.detected.v1"]
+        self.topics = ["music.events.v1", "music.interactions.v1", "moods.events.v1", "mood.detected.v1", "recommendation.events.v1"]
         self.consumer = None
         self.task = None
 

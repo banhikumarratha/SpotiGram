@@ -73,6 +73,21 @@ class ProfileUpdate(BaseModel):
 async def update_profile(user_id: str, req: ProfileUpdate, db: AsyncSession = Depends(get_db)):
     return {"status": "success", "display_name": req.display_name}
 
+@router.get("/{user_id}/profile")
+async def get_profile(user_id: str, db: AsyncSession = Depends(get_db)):
+    from sqlalchemy.future import select
+    from infrastructure.models import UserProfile, UserAccount
+    result = await db.execute(select(UserProfile).where(UserProfile.user_id == user_id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+        
+    acc_result = await db.execute(select(UserAccount).where(UserAccount.id == user_id))
+    account = acc_result.scalar_one_or_none()
+    email = account.email if account else "Unknown Email"
+    
+    return {"user_id": profile.user_id, "display_name": profile.display_name, "email": email}
+
 @auth_router.post("/logout")
 async def logout():
     return {"status": "success", "message": "Logged out successfully"}

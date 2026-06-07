@@ -7,6 +7,7 @@ def init_session_state():
         "refresh_token": None,
         "user_id": None,
         "user_email": None,
+        "display_name": None,
         "spotify_connected": False,
         "spotify_access_token": None,
         "current_theme": "dark",
@@ -25,6 +26,7 @@ def logout():
     st.session_state["refresh_token"] = None
     st.session_state["user_id"] = None
     st.session_state["user_email"] = None
+    st.session_state["display_name"] = None
     st.session_state["spotify_connected"] = False
     st.session_state["spotify_access_token"] = None
     st.session_state["messages"] = []

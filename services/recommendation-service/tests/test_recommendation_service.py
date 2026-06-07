@@ -116,3 +116,34 @@ async def test_feed_mood_parameter_accepted(fake_embedder, fake_publisher):
     # Cold start path — mood should still be stored in feed
     feed = await service.generate_feed("u1", mood=Mood.SAD, limit=3)
     assert feed.mood == Mood.SAD
+
+
+@pytest.mark.asyncio
+async def test_feed_fallback_when_no_similar_tracks(fake_embedder, fake_publisher):
+    store = ChromaVectorStore(ephemeral=True)
+    repo = InMemoryDNARepository()
+
+    # Clear any leftover tracks in ChromaDB to guarantee it is empty
+    if store._tracks.count() > 0:
+        store._tracks.delete(ids=store._tracks.get()["ids"])
+
+    # Create a mature DNA (not cold start) but database is empty
+    vec = _make_vec(42)
+    dna = MusicDNA(
+        user_id="mature_user_empty_db",
+        embedding=vec,
+        top_genres=["pop"],
+        top_artists=["PopStar"],
+        mood_distribution={"happy": 1.0},
+        total_interactions=COLD_START_THRESHOLD + 1,
+        is_cold_start=False,
+    )
+    await repo.save(dna)
+
+    service = RecommendationService(store, fake_embedder, repo, fake_publisher)
+    feed = await service.generate_feed("mature_user_empty_db", mood=Mood.HAPPY, limit=5)
+
+    # Should fall back to cold start feed
+    assert feed.is_cold_start is True
+    assert len(feed.recommendations) > 0
+    assert all("cold_start" in r.signals for r in feed.recommendations)

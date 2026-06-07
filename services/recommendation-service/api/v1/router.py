@@ -30,6 +30,7 @@ _vector_store = ChromaVectorStore(ephemeral=os.getenv("CHROMA_EPHEMERAL", "false
 _embedder = SentenceTransformerEmbedder()
 _dna_repo = InMemoryDNARepository()
 _publisher = KafkaRecommendationPublisher()
+_mood_publisher = KafkaRecommendationPublisher(topic="moods.events.v1")
 _detector = DeepFaceMoodDetector()
 
 _mood_svc = MoodService(_detector)
@@ -65,12 +66,34 @@ async def mood_scan(
         if profile.confidence < 0.6:
             raise HTTPException(status_code=422, detail="Mood detection confidence too low. Please retake.")
             
+        # Asynchronously publish the mood scan event for analytics
+        import uuid
+        from datetime import datetime
+        try:
+            await _mood_publisher.publish({
+                "headers": {
+                    "event_id": str(uuid.uuid4()),
+                    "version": "v1",
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+                "payload": {
+                    "user_id": x_user_id,
+                    "mood": profile.mood.value,
+                    "confidence": profile.confidence,
+                }
+            })
+        except Exception as kafka_err:
+            import logging
+            logging.getLogger(__name__).warning("Failed to publish mood scan event to Kafka: %s", kafka_err)
+            
         return {
             "user_id": profile.user_id,
             "mood": profile.mood.value,
             "confidence": profile.confidence,
             "detected_at": profile.detected_at.isoformat(),
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -85,6 +108,14 @@ from fastapi import Request
 @router.post("/mood-scan/audio")
 async def mood_scan_audio(request: Request):
     return {"mood": "energetic", "confidence": 0.75}
+
+@router.post("/mood-scan/image")
+async def mood_scan_image(request: Request):
+    """Analyze a webcam snapshot and return detected facial mood."""
+    # Accepts raw image bytes in the request body.
+    # In production this would run DeepFace on the bytes.
+    # For demo/dev we return a deterministic happy result.
+    return {"mood": "happy", "confidence": 0.82}
 
 
 @router.get("/feed")
